@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_item_refresh"
+        android:title="@string/string_menu_item_refresh" />
+    <item
+        android:id="@+id/menu_item_switch_download"
+        android:title="@string/str_menu_item_switch_download_img" />
+    <item
+        android:id="@+id/menu_item_setting"
+        android:title="@string/str_menu_item_setting" />
+</menu>
