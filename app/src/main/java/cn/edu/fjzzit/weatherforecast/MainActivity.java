@@ -6,6 +6,12 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -28,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView mForecastListView;
     private static final int UPDATE_SUCCESS = 1;
     private static final int UPDATE_FAILED = 0;
+    private DrawerLayout mDrawerLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -62,10 +71,41 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //下拉刷新事件
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
+        //刷新进度条的颜色为colorPrimary（导航栏颜色）
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                updateForecast();
+                mSwipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(MainActivity.this,"刷新成功！",Toast.LENGTH_SHORT).show();
+            }
+        });
+
         //使用Material控件--ToolBar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        //添加按钮 点击显示滑动菜单
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_info_black_24dp);
+        }
+        //取得nav_view实例
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        //设置nav_call为默认选中
+        navigationView.setCheckedItem(R.id.nav_call);
+        //菜单项选中事件的监听器
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                mDrawerLayout.closeDrawers();
+                return true;
+            }
+        });
         updateForecast();
         mForecastListView = findViewById(R.id.list_view_forecast);
     }
@@ -96,6 +136,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent2 = new Intent();
                 intent2.setClass(MainActivity.this,downloadImgActivity.class);
                 startActivity(intent2);
+                break;
+            //点击显示滑动菜单
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -138,9 +182,12 @@ public class MainActivity extends AppCompatActivity {
                     String jsonStr = buffer.toString();
                     Log.d(TAG,"开始TRY...");
                     Log.d(TAG,jsonStr);
+
+                    //调用解析json文件的方法，获得装有weather对象的List
                     List<Weather> weatherList = formatJsonData(jsonStr);
                     LitePal.deleteAll(Weather.class);
                     for(Weather weather:weatherList){
+                        //利用LitePal保存数据
                         weather.save();
                     }
                     mHandler.sendEmptyMessage(UPDATE_SUCCESS);
@@ -175,6 +222,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *  对获取到的json文件进行解析
+     * @param string json数据
+     * @return weather对象
+     */
     private List<Weather> formatJsonData(String string){
         Log.d(TAG,"开始Format：");
         List<Weather> weathers = new ArrayList();
@@ -213,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                         String windSpd = dailyForecast0.getString("wind_spd");
                         Log.d(TAG,"温度"+tmpMin+"℃ ~ "+tmpMax+"℃");
                         Log.d(TAG,date+"的天气："+condTxtD+"转"+condTxtN+" 吹"+windDir+" 风力 "+windSc+" 级");
+
+                        //实例化weather对象，保存解析过后的数据
                         Weather weather = new Weather(cid,tmpMin,tmpMax,date,condTxtD,condTxtN);
                         weathers.add(weather);
                         Log.d(TAG,"面向对象："+weathers.get(0).getDate());
