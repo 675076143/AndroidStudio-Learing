@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.ic_info_black_24dp);
+            actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_sort_by_size);
         }
         //取得nav_view实例
         NavigationView navigationView = findViewById(R.id.nav_view);
