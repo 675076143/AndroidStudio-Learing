@@ -18,7 +18,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -34,7 +33,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPDATE_FAILED = 0;
     private DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private MenuItem menuItemFindCity;
+
+    private Button  mBtnSwitchFindCityActivity;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 ForecastAdapter forecastAdapter = new ForecastAdapter(
                         MainActivity.this,
                         R.layout.layout_list_item_forecast,
-                        LitePal.findAll(Weather.class));
+                        LitePal.where("cityID=?","CN101230601").find(Weather.class));
                 mForecastListView.setAdapter(forecastAdapter);
 
             }else if(msg.what == UPDATE_FAILED){
@@ -97,12 +98,16 @@ public class MainActivity extends AppCompatActivity {
         //取得nav_view实例
         NavigationView navigationView = findViewById(R.id.nav_view);
         //设置nav_call为默认选中
-        navigationView.setCheckedItem(R.id.nav_call);
+        navigationView.setCheckedItem(R.id.nav_find_city);
         //菜单项选中事件的监听器
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 mDrawerLayout.closeDrawers();
+                //跳转到查询城市Activity
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this,FindCityActivity.class);
+                startActivity(intent);
                 return true;
             }
         });
@@ -185,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
 
                     //调用解析json文件的方法，获得装有weather对象的List
                     List<Weather> weatherList = formatJsonData(jsonStr);
-                    LitePal.deleteAll(Weather.class);
+                    LitePal.deleteAll(Weather.class, "cityId=?", "CN101230601");
                     for(Weather weather:weatherList){
                         //利用LitePal保存数据
                         weather.save();
