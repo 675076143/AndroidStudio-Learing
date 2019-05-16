@@ -17,6 +17,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * 下载图片页面
+ */
 public class downloadImgActivity extends AppCompatActivity {
 
     private static final int LOAD_SUCCESS = 1;

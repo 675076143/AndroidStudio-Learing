@@ -74,4 +74,9 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="str_menu_item_setting">设置</string>
+    <string name="str_nav_download_img">下载图片</string>
+    <string name="str_nav_find_city">切换城市</string>
+    <string name="str_hint_findcity">搜索国内外城市</string>
+    <string name="str_button_findcity">查找城市</string>
+    <string name="str_editText_find_city" />
 </resources>

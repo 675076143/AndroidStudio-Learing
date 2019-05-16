@@ -14,22 +14,25 @@
         android:orientation="horizontal"
         android:padding="10dp">
 
+        <Button
+            android:id="@+id/button_back"
+            android:layout_width="43dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:width="10dp"
+            android:background="?attr/actionModeCloseDrawable"
+            android:minWidth="10dp"
+            android:textSize="18sp" />
+
         <EditText
             android:id="@+id/edit_text_cityid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
+            android:hint="@string/str_hint_findcity"
             android:inputType="textPersonName"
-            android:text="Name" />
-
-        <Button
-            android:id="@+id/button_find_city"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:padding="10dp"
-            android:text="Button" />
+            android:text="@string/str_editText_find_city" />
 
     </LinearLayout>
 

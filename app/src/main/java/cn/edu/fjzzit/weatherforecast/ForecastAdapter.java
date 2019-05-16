@@ -13,6 +13,10 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.util.List;
 
+/**
+ * 天气数据适配器
+ * 三列数据，分别为：日期、天气、温度
+ */
 public class ForecastAdapter extends ArrayAdapter<Weather> {
 
     private static final String TAG = "ForecastAdapter";
@@ -25,12 +29,12 @@ public class ForecastAdapter extends ArrayAdapter<Weather> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Weather weather = getItem(position);
-
+        //获取控件
         View view = LayoutInflater.from(getContext()).inflate(resourceID, parent, false);
         TextView dateTextView = view.findViewById(R.id.text_view_date);
         TextView forecastTextView = view.findViewById(R.id.text_view_forecast);
         TextView tempTextView = view.findViewById(R.id.text_view_temp);
-
+        //设置控件Text的值
         dateTextView.setText(weather.getDate());
         forecastTextView.setText(weather.getCondTxtD()+"转"+weather.getCondTxtN());
 

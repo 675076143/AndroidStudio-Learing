@@ -3,6 +3,9 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_find_city"
-            android:title="切换城市"/>
+            android:title="@string/str_nav_find_city" />
+        <item
+            android:id="@+id/nav_download_img"
+            android:title="@string/str_nav_download_img" />
     </group>
 </menu>

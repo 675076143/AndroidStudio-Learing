@@ -1,10 +1,13 @@
 package cn.edu.fjzzit.weatherforecast;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,14 +29,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 查找城市页面
+ */
 public class FindCityActivity extends AppCompatActivity {
-
+    //定义两个常量，记录城市查询是否成功
     private static final int FIND_SUCCESS = 2;
     private static final int FIND_FAILED = -2;
     private String cityName;
     private TextView mTextViewCityName;
     private ListView mListViewFoundCity;
-    private Button mBtnFindCity;
+    private Button mBtnBack;
     private static final String TAG = "FindCityActivity";
 
     private Handler mHandler = new Handler(){
@@ -50,7 +56,7 @@ public class FindCityActivity extends AppCompatActivity {
             }else if(msg.what == FIND_FAILED){
                 Toast.makeText(FindCityActivity.this,
                         "未找到该城市",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
             }
             super.handleMessage(msg);
         }
@@ -59,15 +65,37 @@ public class FindCityActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_city);
-        mBtnFindCity = findViewById(R.id.button_find_city);
         mListViewFoundCity = findViewById(R.id.list_view_found_city);
+        //文本输入框[城市名称]
         mTextViewCityName = findViewById(R.id.edit_text_cityid);
-
-        mBtnFindCity.setOnClickListener(new View.OnClickListener() {
+        //文本输入框内容变换监听
+        mTextViewCityName.addTextChangedListener(new TextWatcher() {
+            //当文本框里内容变化之前的时候执行该方法
             @Override
-            public void onClick(View v) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+            //当输入框里文本变化的时候执行查询城市
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 cityName = mTextViewCityName.getText().toString();
                 findCity();
+            }
+            //当文本框里内容变化之后的时候执行该方法
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        mBtnBack = findViewById(R.id.button_back);
+        //点击返回主页
+        mBtnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //跳转到MainActivity
+                Intent intent = new Intent();
+                intent.setClass(FindCityActivity.this,MainActivity.class);
+                startActivity(intent);
             }
         });
 

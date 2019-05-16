@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.internal.NavigationMenuItemView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -36,6 +38,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 主页面
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -44,9 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPDATE_FAILED = 0;
     private DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private MenuItem menuItemFindCity;
-
-    private Button  mBtnSwitchFindCityActivity;
+    private NavigationView mNavigationView;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -96,21 +99,35 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_sort_by_size);
         }
         //取得nav_view实例
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        mNavigationView = findViewById(R.id.nav_view);
         //设置nav_call为默认选中
-        navigationView.setCheckedItem(R.id.nav_find_city);
-        //菜单项选中事件的监听器
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+        mNavigationView.setCheckedItem(R.id.nav_find_city);
+
+        //左侧滑动菜单项选中事件的监听器
+        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 mDrawerLayout.closeDrawers();
-                //跳转到查询城市Activity
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this,FindCityActivity.class);
-                startActivity(intent);
+                switch (menuItem.getItemId())
+                {
+                    case R.id.nav_find_city:
+                        //跳转到查询城市Activity
+                        Intent intent = new Intent();
+                        intent.setClass(MainActivity.this,FindCityActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.nav_download_img:
+                        //跳转到查询城市Activity
+                        Intent intentDownloadImg = new Intent();
+                        intentDownloadImg.setClass(MainActivity.this,downloadImgActivity.class);
+                        startActivity(intentDownloadImg);
+                        break;
+                }
                 return true;
             }
         });
+
+        //更新天气
         updateForecast();
         mForecastListView = findViewById(R.id.list_view_forecast);
     }
@@ -166,8 +183,9 @@ public class MainActivity extends AppCompatActivity {
                         .appendQueryParameter("key", "c0eabd2cbf7d4920bb45ff74c85dad5d")
                         .build();
                 String url = uri.toString();
-                //String url = "http://192.168.22.161/s6/weather/forecast?location=%E6%BC%B3%E5%B7%9E&key=123456";
-                //String url = "https://free-api.heweather.com/s6/weather/forecast?location=%E6%BC%B3%E5%B7%9E&key=c0eabd2cbf7d4920bb45ff74c85dad5d";
+                /*教室用url
+                String url = "http://192.168.22.161/s6/weather/forecast?location=%E6%BC%B3%E5%B7%9E&key=123456";
+                */
                 HttpURLConnection httpURLConnection = null;
 
                 InputStream inputStream = null;
@@ -246,16 +264,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                     JSONObject basic = heWeather.getJSONObject("basic");
                         String cid =  basic.getString("cid");
-//                        JSONObject location = basic.getJSONObject("location");
-//                        JSONObject parent_city = basic.getJSONObject("parent_city");
-//                        JSONObject admin_area = basic.getJSONObject("admin_area");
-//                        JSONObject cnty = basic.getJSONObject("cnty");
-//                        JSONObject lat = basic.getJSONObject("lat");
-//                        JSONObject lon = basic.getJSONObject("lon");
-//                        JSONObject tz = basic.getJSONObject("tz");
+                        /*其他数据解析[备用]
+                        JSONObject location = basic.getJSONObject("location");
+                        JSONObject parent_city = basic.getJSONObject("parent_city");
+                        JSONObject admin_area = basic.getJSONObject("admin_area");
+                        JSONObject cnty = basic.getJSONObject("cnty");
+                        JSONObject lat = basic.getJSONObject("lat");
+                        JSONObject lon = basic.getJSONObject("lon");
+                        JSONObject tz = basic.getJSONObject("tz");
+
                     JSONObject update = heWeather.getJSONObject("update");
-//                        JSONObject loc = update.getJSONObject("loc");
-//                        JSONObject utc = update.getJSONObject("utc");
+                        JSONObject loc = update.getJSONObject("loc");
+                        JSONObject utc = update.getJSONObject("utc");
+                        */
                         Log.d(TAG,"值为："+cid);
                     JSONArray dailyForecast = heWeather.getJSONArray("daily_forecast");
                     for (int i = 0;i<dailyForecast.length();i++){
