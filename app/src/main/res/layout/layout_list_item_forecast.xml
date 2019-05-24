@@ -10,7 +10,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:width="0dp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textColor="@android:color/background_light" />
 
     <TextView
         android:id="@+id/text_view_forecast"
@@ -18,7 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:width="0dp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textColor="@android:color/background_light" />
 
     <TextView
         android:id="@+id/text_view_temp"
@@ -26,5 +28,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:width="0dp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:textColor="@android:color/background_light" />
 </LinearLayout>

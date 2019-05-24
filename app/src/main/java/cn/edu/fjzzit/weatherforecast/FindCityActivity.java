@@ -1,15 +1,18 @@
 package cn.edu.fjzzit.weatherforecast;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -27,7 +30,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * 查找城市页面
@@ -57,6 +63,15 @@ public class FindCityActivity extends AppCompatActivity {
                 Toast.makeText(FindCityActivity.this,
                         "未找到该城市",
                         Toast.LENGTH_SHORT).show();
+                //利用cityAdapter装配数据
+                //实例化List<City> cityList,不存任何数据(空)
+                //将实例化的cityList利用适配器装配
+                List<City> cityList = new ArrayList<City>();
+                CityAdapter cityAdapter = new CityAdapter(
+                        FindCityActivity.this,
+                        R.layout.layout_list_city,
+                        cityList);
+                mListViewFoundCity.setAdapter(cityAdapter);
             }
             super.handleMessage(msg);
         }
@@ -93,9 +108,21 @@ public class FindCityActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //跳转到MainActivity
-                Intent intent = new Intent();
-                intent.setClass(FindCityActivity.this,MainActivity.class);
-                startActivity(intent);
+                finish();
+
+            }
+        });
+        //ListView的Item点击事件
+        mListViewFoundCity.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+               City city = (City) parent.getItemAtPosition(position);
+                //将点击取得的城市ID保存到配置文件中
+                SharedPreferences preferences = PreferenceManager
+                        .getDefaultSharedPreferences(FindCityActivity.this);
+                preferences.edit().putString("cityID", city.getCityId());
+                //结束当前Activity
+               finish();
             }
         });
 
@@ -112,6 +139,11 @@ public class FindCityActivity extends AppCompatActivity {
                         .appendQueryParameter("key", "c0eabd2cbf7d4920bb45ff74c85dad5d")
                         .build();
                 String url = uri.toString();
+                 /*教室用url
+                String url = "http://192.168.22.161/s6/find?location=%E6%BC%B3%E5%B7%9E&key=123456";
+                个人用url
+                https://search.heweather.net/find?location=cityName&key=c0eabd2cbf7d4920bb45ff74c85dad5d
+                */
                 HttpURLConnection httpURLConnection = null;
 
                 InputStream inputStream = null;
