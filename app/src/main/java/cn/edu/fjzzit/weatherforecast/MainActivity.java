@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
 
         //使用Material控件--ToolBar
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("轻天气");
         setSupportActionBar(toolbar);
         //添加按钮 点击显示滑动菜单
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -186,11 +187,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         /*菜单栏点击事件*/
         switch (item.getItemId()){
-            //点击刷新
-            case R.id.menu_item_refresh:
-                updateForecast();
-                Toast.makeText(MainActivity.this,"刷新成功！",Toast.LENGTH_SHORT).show();
-                break;
             //点击跳转到设置页面
             case R.id.menu_item_setting:
                 Intent intent = new Intent();
@@ -403,6 +399,8 @@ public class MainActivity extends AppCompatActivity {
                     for(int i = 0;i<lifesSyles.length();i++) {
                         JSONObject lifeStyle = lifesSyles.getJSONObject(i);
                         String type = lifeStyle.getString("type");
+                        //通过生活指数类型代码，获得生活指数类型
+                        type = getLifeStyleType(type);
                         String brf = lifeStyle.getString("brf");
                         String txt = lifeStyle.getString("txt");
                         //实例化LifeStyle对象，保存解析过后的数据
@@ -751,6 +749,36 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
+    }
+
+    /**
+     * 通过生活指数类型代码(type)，返回生活指数类型
+     * @param type 生活指数类型代码
+     * @return 生活指数类型
+     */
+    private String getLifeStyleType(String type)
+    {
+        switch (type)
+        {
+            case "comf":
+                return "舒适度指数";
+            case "cw":
+                return "洗车指数";
+            case "drsg":
+                return "穿衣指数";
+            case "flu":
+                return "感冒指数";
+            case "sport":
+                return "运动指数";
+            case "trav":
+                return "旅游指数";
+            case "uv":
+                return "紫外线指数";
+            case "air":
+                return "空气污染扩散条件指数";
+            default:
+                return "其他";
+        }
     }
 
 }

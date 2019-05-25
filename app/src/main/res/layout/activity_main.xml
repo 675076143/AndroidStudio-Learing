@@ -10,37 +10,42 @@
     >
 
     <!--第一个子控件为屏幕显示的内容-->
-    <LinearLayout
+    <!--CoordinatorLayout就是一个加强版的FrameLayout-->
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity"
-        android:orientation="vertical">
-
-        <!--ToolBar-->
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+        android:layout_height="match_parent">
+        <!--将ToolBar嵌套到AppBarLayout中-->
+        <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
-    `
+            android:layout_height="wrap_content">
+            <!--ToolBar-->
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:layout_scrollFlags="scroll|enterAlways|snap" />
+        </android.support.design.widget.AppBarLayout>
         <!--下拉刷新-->
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent">
 
-            <ScrollView
+            <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/darker_gray">
+                android:background="@android:color/darker_gray"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:padding="10dp">
+                    android:padding="10dp"
+                    android:layout_marginTop="30dp">
 
                     <android.support.constraint.ConstraintLayout
                         android:layout_width="match_parent"
@@ -112,22 +117,25 @@
                     <ListView
                         android:id="@+id/list_view_life_style"
                         android:layout_width="match_parent"
-                        android:layout_height="400dp"
+                        android:layout_height="800dp"
                         android:layout_marginTop="10dp"
+                        android:background="@color/colorAccent"
                         android:paddingTop="10dp"></ListView>
-                    <!--FloatingActionButton悬浮按钮-->
-                    <android.support.design.widget.FloatingActionButton
-                        android:id="@+id/fab"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|end"
-                        android:layout_margin="16dp"
-                        android:src="@android:drawable/ic_input_add" />
+
                 </LinearLayout>
 
-            </ScrollView>
+            </android.support.v4.widget.NestedScrollView>
         </android.support.v4.widget.SwipeRefreshLayout>
-    </LinearLayout>
+        <!--FloatingActionButton悬浮按钮-->
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:src="@android:drawable/ic_input_add"
+            app:elevation="8dp" />
+    </android.support.design.widget.CoordinatorLayout>
 
     <!--第二个子控件是滑动菜单中显示的内容-->
     <android.support.design.widget.NavigationView
