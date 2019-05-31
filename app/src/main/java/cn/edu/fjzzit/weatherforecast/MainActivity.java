@@ -1,5 +1,7 @@
 package cn.edu.fjzzit.weatherforecast;
 import org.litepal.LitePal;
+
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private List<LifeStyle> lifeStyleList = new ArrayList<LifeStyle>();
     private RecyclerView mRecyclerView;
     private MyUtils myUtils = new MyUtils();    //工具类，包含根据id获取图片，转换生活指数类型等
+    private String mLocaion;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -89,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 mTextViewNowTmp.setText(weatherNow.getTmp()+"℃");
                 mTextViewNowFl.setText("体感温度："+weatherNow.getFl()+"℃");
                 mTextViewNowCondTxt.setText(weatherNow.getCondTxt());
+                mTextViewCityTitle.setText(mLocaion);
                 /*适配器填充生活指数（ListView）
                 LifeStyleAdapter lifeStyleAdapter = new LifeStyleAdapter(
                         MainActivity.this,
@@ -114,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         updateForecast();
+        Log.d("主界面onResume",getCurrentCityID());
         super.onResume();
     }
 
@@ -166,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                         startActivityForResult(intent,0x002);
                         break;
                     case R.id.nav_download_img:
-                        //跳转到查询城市Activity
+                        //跳转到下载图片Activity
                         Intent intentDownloadImg = new Intent();
                         intentDownloadImg.setClass(MainActivity.this,downloadImgActivity.class);
                         startActivity(intentDownloadImg);
@@ -185,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
         mImageViewNowCondCode = findViewById(R.id.image_view_now_cond_code);
         mTextViewNowFl = findViewById(R.id.text_view_now_fl);
         mTextViewNowCondTxt = findViewById(R.id.text_view_now_cond_txt);
-        mTextViewCityTitle.setText("漳州");
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        //mTextViewCityTitle.setText("漳州");
     }
 
     @Override
@@ -224,8 +229,7 @@ public class MainActivity extends AppCompatActivity {
      */
     String getCurrentCityID(){
         //从配置文件中取出城市ID
-        SharedPreferences preferences = PreferenceManager
-                .getDefaultSharedPreferences(MainActivity.this);
+        SharedPreferences preferences = getSharedPreferences("userSettings", Context.MODE_PRIVATE);
         return preferences.getString("cityID","CN101230601");
     }
     /**
@@ -243,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
                         .appendQueryParameter("key", "c0eabd2cbf7d4920bb45ff74c85dad5d")
                         .build();
                 String url = uri.toString();
+                Log.d("切换城市后返回主界面：", getCurrentCityID());
                 /*教室用url
                 String url = "http://192.168.22.161/s6/weather/forecast?location=%E6%BC%B3%E5%B7%9E&key=123456";
                 个人用url
@@ -336,6 +341,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     JSONObject basic = heWeather.getJSONObject("basic");
                         String cid =  basic.getString("cid");
+                        String locaion = basic.getString("location");
+                        mLocaion = locaion;
+                        Log.d("城市Loaction = ",mLocaion);
                         /*其他数据解析[备用]
                         JSONObject location = basic.getJSONObject("location");
                         JSONObject parent_city = basic.getJSONObject("parent_city");

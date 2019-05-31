@@ -1,5 +1,6 @@
 package cn.edu.fjzzit.weatherforecast;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -117,10 +118,14 @@ public class FindCityActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                City city = (City) parent.getItemAtPosition(position);
-                //将点击取得的城市ID保存到配置文件中
-                SharedPreferences preferences = PreferenceManager
-                        .getDefaultSharedPreferences(FindCityActivity.this);
-                preferences.edit().putString("cityID", city.getCityId());
+                //将点击取得的城市ID保存到userSettings配置文件中,以便MainActivity访问
+                SharedPreferences preferences = getSharedPreferences("userSettings", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                //编辑数据
+                editor.putString("cityID", city.getCityId());
+                //提交编辑
+                editor.commit();
+                Log.d("切换城市ID",city.getCityId());
                 //结束当前Activity
                finish();
             }
