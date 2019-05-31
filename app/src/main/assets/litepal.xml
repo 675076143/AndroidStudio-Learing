@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <litepal>
     <dbname value="weatherForecast" />
-    <version value="9" />
+    <version value="10" />
     <list>
         <mapping class="cn.edu.fjzzit.weatherforecast.Weather" />
         <mapping class="cn.edu.fjzzit.weatherforecast.City" />

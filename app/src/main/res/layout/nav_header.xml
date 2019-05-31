@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:padding="10dp"
-    android:background="?attr/colorPrimary">
+    android:background="?attr/colorPrimaryDark">
     
     <!--将图片圆形化的插件-->
     <de.hdodenhof.circleimageview.CircleImageView

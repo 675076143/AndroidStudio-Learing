@@ -23,7 +23,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
+                android:background="?attr/colorPrimaryDark"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_scrollFlags="scroll|enterAlways|snap" />
@@ -37,20 +37,22 @@
             <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:color/darker_gray"
+                android:background="@color/colorBackgroundBlack"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:padding="10dp"
+                    android:padding="6dp"
                     android:layout_marginTop="30dp">
 
                     <android.support.constraint.ConstraintLayout
+
+                        android:layout_margin="6dp"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
-                        android:background="#CBFFFFFF">
+                        android:background="@color/colorBackground">
 
                         <TextView
                             android:id="@+id/text_view_city_title"
@@ -60,6 +62,7 @@
                             android:layout_marginTop="16dp"
                             android:text="TextView"
                             android:textSize="12sp"
+                            android:textColor="@color/colorFont"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,6 +74,7 @@
                             android:layout_marginTop="44dp"
                             android:text="23℃"
                             android:textSize="36sp"
+                            android:textColor="@color/colorFont"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@+id/image_view_now_cond_code" />
 
@@ -92,6 +96,7 @@
                             android:layout_marginTop="56dp"
                             android:text="晴"
                             android:textSize="36sp"
+                            android:textColor="@color/colorFont"
                             app:layout_constraintStart_toEndOf="@+id/image_view_now_cond_code"
                             app:layout_constraintTop_toTopOf="parent" />
 
@@ -101,6 +106,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="40dp"
                             android:layout_marginTop="24dp"
+                            android:textColor="@color/colorFont"
                             android:text="体感温度：25℃"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@+id/text_view_now_tmp" />
@@ -110,17 +116,14 @@
                         android:id="@+id/list_view_forecast"
                         android:layout_width="match_parent"
                         android:layout_height="160dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@color/colorAccent"
+                        android:layout_margin="6dp"
+                        android:background="@color/colorBackground"
                         android:paddingTop="10dp"></ListView>
 
-                    <ListView
-                        android:id="@+id/list_view_life_style"
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/recycler_view"
                         android:layout_width="match_parent"
-                        android:layout_height="800dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@color/colorAccent"
-                        android:paddingTop="10dp"></ListView>
+                        android:layout_height="match_parent" />
 
                 </LinearLayout>
 
