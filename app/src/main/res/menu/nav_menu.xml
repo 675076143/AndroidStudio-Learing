@@ -5,6 +5,10 @@
             android:id="@+id/nav_find_city"
             android:title="@string/str_nav_find_city" />
         <item
+            android:id="@+id/nav_wicked_mode"
+            android:title="@string/string_nav_wicked_mod" />
+
+        <item
             android:id="@+id/nav_download_img"
             android:title="@string/str_nav_download_img" />
     </group>

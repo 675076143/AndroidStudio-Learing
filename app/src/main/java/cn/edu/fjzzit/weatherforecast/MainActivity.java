@@ -170,6 +170,12 @@ public class MainActivity extends AppCompatActivity {
                         //startActivityForResult页面间传值
                         startActivityForResult(intent,0x002);
                         break;
+                    case R.id.nav_wicked_mode:
+                        //跳转到缺德模式Activity
+                        Intent intentWickedMode = new Intent();
+                        intentWickedMode.setClass(MainActivity.this,WickedModeActivity.class);
+                        startActivity(intentWickedMode);
+                        break;
                     case R.id.nav_download_img:
                         //跳转到下载图片Activity
                         Intent intentDownloadImg = new Intent();

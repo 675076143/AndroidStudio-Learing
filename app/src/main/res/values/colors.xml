@@ -6,4 +6,6 @@
     <color name="colorFont">#FFFFFF</color>
     <color name="colorBackground">#22242B</color>
     <color name="colorBackgroundBlack">#000000</color>
+    <color name="colorTrack">#4CAF50</color>
+    <color name="colorThumb">#F44336</color>
 </resources>
