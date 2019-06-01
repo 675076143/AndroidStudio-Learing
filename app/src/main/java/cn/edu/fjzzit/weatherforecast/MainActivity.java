@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private ListView mForecastListView;
-    private ListView mListViewLifeStyle;
+    //private ListView mListViewLifeStyle;
     private static final int UPDATE_SUCCESS = 1;
     private static final int UPDATE_FAILED = 0;
     private DrawerLayout mDrawerLayout;
@@ -72,7 +72,8 @@ public class MainActivity extends AppCompatActivity {
     private String cid = "CN101230601";
     private String localTime;
     private WeatherNow weatherNow = new WeatherNow();
-    private List<LifeStyle> lifeStyleList = new ArrayList<LifeStyle>();
+    private List<LifeStyle> lifeStyleList = new ArrayList();
+    private List<Weather> weathers = new ArrayList();
     private RecyclerView mRecyclerView;
     private MyUtils myUtils = new MyUtils();    //工具类，包含根据id获取图片，转换生活指数类型等
     private String mLocaion;
@@ -105,10 +106,15 @@ public class MainActivity extends AppCompatActivity {
                 mRecyclerView.setLayoutManager(gridLayoutManager);
                 LifeStyleCardViewAdapter lifeStyleCardViewAdapter = new LifeStyleCardViewAdapter(LitePal.findAll(LifeStyle.class));
                 mRecyclerView.setAdapter(lifeStyleCardViewAdapter);
+                //Toast显示成功
+                Toast.makeText(MainActivity.this,
+                        "更新成功",
+                        Toast.LENGTH_LONG).show();
 
             }else if(msg.what == UPDATE_FAILED){
+                //Toast显示失败
                 Toast.makeText(MainActivity.this,
-                        "Failed",
+                        "更新失败，请检查您的网络...",
                         Toast.LENGTH_LONG).show();
             }
             super.handleMessage(msg);
@@ -136,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             public void onRefresh() {
                 updateForecast();
                 mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(MainActivity.this,"刷新成功！",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this,"刷新成功！",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -280,27 +286,34 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG,"开始TRY...");
                     Log.d(TAG,jsonStr);
 
-                    //调用解析json文件的方法，获得装有weather对象的List
-                    List<Weather> weatherList = formatJsonData(jsonStr);
-                    //更新前删除原有数据
-                    LitePal.deleteAll(Weather.class, "cityId=?", getCurrentCityID());
-                    LitePal.deleteAll(LifeStyle.class, "cityId=?", getCurrentCityID());
-                    for(Weather weather:weatherList){
-                        //利用LitePal保存数据
-                        weather.save();
+                    //调用解析json文件的方法,true则为成功取得数据
+                    if(formatJsonData(jsonStr))
+                    {
+                        //更新前删除原有数据
+                        LitePal.deleteAll(Weather.class, "cityId=?", getCurrentCityID());
+                        LitePal.deleteAll(LifeStyle.class, "cityId=?", getCurrentCityID());
+                        for(Weather weather:weathers){
+                            //利用LitePal保存数据
+                            weather.save();
+                        }
+                        //调用解析json文件的方法，获得装有LifeStyle对象的List
+                        //更新前删除原有数据
+                        LitePal.deleteAll(LifeStyle.class);
+                        for(LifeStyle lifeStyle:lifeStyleList){
+                            //利用LitePal保存数据
+                            lifeStyle.save();
+                        }
+                        mHandler.sendEmptyMessage(UPDATE_SUCCESS);
                     }
-                    //调用解析json文件的方法，获得装有LifeStyle对象的List
-                    //更新前删除原有数据
-                    LitePal.deleteAll(LifeStyle.class);
-                    for(LifeStyle lifeStyle:lifeStyleList){
-                        //利用LitePal保存数据
-                        lifeStyle.save();
+                    else
+                    {
+                        mHandler.sendEmptyMessage(UPDATE_FAILED);
                     }
-                    mHandler.sendEmptyMessage(UPDATE_SUCCESS);
 
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.d(TAG,"TRY失败");
+                    mHandler.sendEmptyMessage(UPDATE_FAILED);
                 }finally {
                     if(bufferedReader!=null){
                         try {
@@ -333,9 +346,9 @@ public class MainActivity extends AppCompatActivity {
      * @param string json数据
      * @return weather对象
      */
-    private List<Weather> formatJsonData(String string){
+    private boolean formatJsonData(String string){
         Log.d(TAG,"开始Format：");
-        List<Weather> weathers = new ArrayList();
+
 
         try {
             JSONObject jsonObject = new JSONObject(string);
@@ -343,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject heWeather = heWeather6.getJSONObject(0);
                     String status = heWeather.getString("status");
                     if(!status.equals("ok")){
-                        return null;
+                        return false;
                     }
                     JSONObject basic = heWeather.getJSONObject("basic");
                         String cid =  basic.getString("cid");
@@ -443,9 +456,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
             Log.d(TAG,"format失败");
+            return false;
         }
         //Log.d(TAG,weathers);
-        return weathers;
+        return true;
     }
 
 
