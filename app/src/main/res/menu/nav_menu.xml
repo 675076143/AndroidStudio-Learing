@@ -7,9 +7,9 @@
         <item
             android:id="@+id/nav_wicked_mode"
             android:title="@string/string_nav_wicked_mod" />
-
         <item
-            android:id="@+id/nav_download_img"
-            android:title="@string/str_nav_download_img" />
+            android:id="@+id/nav_locate"
+            android:title="@string/string_locate" />
+
     </group>
 </menu>

@@ -4,6 +4,7 @@ import org.litepal.LitePal;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -11,8 +12,14 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.internal.NavigationMenuItemView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
@@ -31,6 +38,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -51,16 +67,27 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import lecho.lib.hellocharts.gesture.ContainerScrollType;
+import lecho.lib.hellocharts.gesture.ZoomType;
+import lecho.lib.hellocharts.model.Axis;
+import lecho.lib.hellocharts.model.AxisValue;
+import lecho.lib.hellocharts.model.Line;
+import lecho.lib.hellocharts.model.LineChartData;
+import lecho.lib.hellocharts.model.PointValue;
+import lecho.lib.hellocharts.model.ValueShape;
+import lecho.lib.hellocharts.view.LineChartView;
+
 /**
  * 主页面
  */
 public class MainActivity extends AppCompatActivity {
 
+    private List<Fragment> fragments;
     private static final String TAG = "MainActivity";
     private ListView mForecastListView;
     //private ListView mListViewLifeStyle;
-    private static final int UPDATE_SUCCESS = 1;
-    private static final int UPDATE_FAILED = 0;
+    private static final int UPDATE_SUCCESS = 101;
+    private static final int UPDATE_FAILED = 102;
     private DrawerLayout mDrawerLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private NavigationView mNavigationView;
@@ -69,6 +96,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTextViewNowFl;
     private TextView mTextViewNowCondTxt;
     private ImageView mImageViewNowCondCode;
+    private TextView mTextViewWindDir;
+    private TextView mTextViewWindSc;
+    private TextView mTextViewWindSpd;
+    private TextView mTextViewCloud;
+    private TextView mTextViewVis;
+    private TextView mTextViewPres;
+    private TextView mTextViewHum;
+    private TextView mTextViewPcpn;
     private String cid = "CN101230601";
     private String localTime;
     private WeatherNow weatherNow = new WeatherNow();
@@ -77,6 +112,29 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private MyUtils myUtils = new MyUtils();    //工具类，包含根据id获取图片，转换生活指数类型等
     private String mLocaion;
+    private ViewPager mViewPagerWeather;
+    private WeatherFragment mWeatherFragment;
+    private List<Fragment> mFragmentList = new ArrayList<Fragment>();
+    private FragmentAdapter mFragmentAdapter;
+    //折线图
+    private LineChartView mLineChartView24H;
+
+    //private ArrayList<Entry> pointValues = new ArrayList<>();
+
+
+    String[] hourly_times = {"","","","","","","",""};//X轴的标注，24小时预报的时间段
+    float[] hourly_tmp = {0,0,0,0,0,0,0,0};//图表的数据
+    private List<PointValue> mPointValues = new ArrayList<PointValue>();
+    private List<AxisValue> mAxisValues = new ArrayList<AxisValue>();
+    //当前天气数据
+    String cloud;
+    String hum;
+    String pcpn;
+    String pres;
+    String vis;
+    String windDir;
+    String windSc;
+    String windSpd;
 
     private Handler mHandler = new Handler(){
         @Override
@@ -90,32 +148,34 @@ public class MainActivity extends AppCompatActivity {
                 mForecastListView.setAdapter(forecastAdapter);
                 //填充实时天气数据
                 mImageViewNowCondCode.setImageResource(myUtils.setImageByCondCode(weatherNow.getCondCode()));
-                mTextViewNowTmp.setText(weatherNow.getTmp()+"℃");
-                mTextViewNowFl.setText("体感温度："+weatherNow.getFl()+"℃");
+                mTextViewNowTmp.setText(myUtils.temp_unit(weatherNow.getTmp()));
+                mTextViewNowFl.setText("体感温度："+myUtils.temp_unit(weatherNow.getFl()));
                 mTextViewNowCondTxt.setText(weatherNow.getCondTxt());
                 mTextViewCityTitle.setText(mLocaion);
-                /*适配器填充生活指数（ListView）
-                LifeStyleAdapter lifeStyleAdapter = new LifeStyleAdapter(
-                        MainActivity.this,
-                        R.layout.layout_list_item_life_style,
-                        LitePal.findAll(LifeStyle.class));
-                mListViewLifeStyle.setAdapter(lifeStyleAdapter);
-                */
+                mTextViewWindDir.setText(windDir);
+                mTextViewWindSc.setText(windSc+"级");
+                mTextViewWindSpd.setText(windSpd+"km/h");
+                mTextViewCloud.setText(cloud);
+                mTextViewPres.setText(pres+"HPA");
+                mTextViewPcpn.setText(pcpn+"mm");
+                mTextViewVis.setText(vis+"km");
+                mTextViewHum.setText(hum+"%");
                 //适配器填充生活指数（CardView）
-                GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 2);
+                GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this, 4);
                 mRecyclerView.setLayoutManager(gridLayoutManager);
                 LifeStyleCardViewAdapter lifeStyleCardViewAdapter = new LifeStyleCardViewAdapter(LitePal.findAll(LifeStyle.class));
                 mRecyclerView.setAdapter(lifeStyleCardViewAdapter);
                 //Toast显示成功
                 Toast.makeText(MainActivity.this,
                         "更新成功",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
 
-            }else if(msg.what == UPDATE_FAILED){
+            }
+            else if(msg.what == UPDATE_FAILED){
                 //Toast显示失败
                 Toast.makeText(MainActivity.this,
                         "更新失败，请检查您的网络...",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
             }
             super.handleMessage(msg);
         }
@@ -133,6 +193,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //取得ID
+        mForecastListView = findViewById(R.id.list_view_forecast);
+        mTextViewCityTitle = findViewById(R.id.text_view_city_title);
+        mTextViewNowTmp = findViewById(R.id.text_view_now_tmp);
+        mImageViewNowCondCode = findViewById(R.id.image_view_now_cond_code);
+        mTextViewNowFl = findViewById(R.id.text_view_now_fl);
+        mTextViewNowCondTxt = findViewById(R.id.text_view_now_cond_txt);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mLineChartView24H = (LineChartView)findViewById(R.id.line_chart_view_24h);
+        mViewPagerWeather = (ViewPager)findViewById(R.id.view_page_weather);
+        mTextViewWindDir = findViewById(R.id.text_view_wind_dir);
+        mTextViewWindSc = findViewById(R.id.text_view_wind_sc);
+        mTextViewWindSpd = findViewById(R.id.text_view_wind_spd);
+        mTextViewCloud = findViewById(R.id.text_view_cloud);
+        mTextViewHum = findViewById(R.id.text_view_hum);
+        mTextViewPcpn = findViewById(R.id.text_view_pcpn);
+        mTextViewPres = findViewById(R.id.text_view_wind_pres);
+        mTextViewVis = findViewById(R.id.text_view_vis);
+
+        //利用viePage+Fragment实现添加城市天气
+        /*
+        initFragments();
+        mFragmentList.add(mWeatherFragment);
+        mFragmentAdapter = new FragmentAdapter(getSupportFragmentManager(),mFragmentList);
+        mViewPagerWeather.setOffscreenPageLimit(1);//ViewPager的缓存为2帧
+        mViewPagerWeather.setAdapter(mFragmentAdapter);
+        mViewPagerWeather.setCurrentItem(0);//初始设置ViewPager选中第一帧
+        */
+
         //下拉刷新事件
         mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
         //刷新进度条的颜色为colorPrimary（导航栏颜色）
@@ -140,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                Log.d(TAG,"刷新测试");
                 updateForecast();
                 mSwipeRefreshLayout.setRefreshing(false);
                 //Toast.makeText(MainActivity.this,"刷新成功！",Toast.LENGTH_SHORT).show();
@@ -162,6 +252,15 @@ public class MainActivity extends AppCompatActivity {
         //设置nav_call为默认选中
         mNavigationView.setCheckedItem(R.id.nav_find_city);
 
+        //悬浮按钮点击事件监听器
+        FloatingActionButton floatingActionButton = (FloatingActionButton)findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this,"Fab Clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         //左侧滑动菜单项选中事件的监听器
         mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -182,12 +281,6 @@ public class MainActivity extends AppCompatActivity {
                         intentWickedMode.setClass(MainActivity.this,WickedModeActivity.class);
                         startActivity(intentWickedMode);
                         break;
-                    case R.id.nav_download_img:
-                        //跳转到下载图片Activity
-                        Intent intentDownloadImg = new Intent();
-                        intentDownloadImg.setClass(MainActivity.this,downloadImgActivity.class);
-                        startActivity(intentDownloadImg);
-                        break;
                 }
                 return true;
             }
@@ -195,15 +288,75 @@ public class MainActivity extends AppCompatActivity {
 
         //更新天气
         //updateForecast();
-        mForecastListView = findViewById(R.id.list_view_forecast);
-        //mListViewLifeStyle = findViewById(R.id.list_view_life_style);
-        mTextViewCityTitle = findViewById(R.id.text_view_city_title);
-        mTextViewNowTmp = findViewById(R.id.text_view_now_tmp);
-        mImageViewNowCondCode = findViewById(R.id.image_view_now_cond_code);
-        mTextViewNowFl = findViewById(R.id.text_view_now_fl);
-        mTextViewNowCondTxt = findViewById(R.id.text_view_now_cond_txt);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        //mTextViewCityTitle.setText("漳州");
+
+    }
+
+    /**
+     * 初始化LineChart的一些设置
+     */
+    private void initLineChart(){
+        Line line = new Line(mPointValues).setColor(Color.WHITE).setCubic(false);  //折线的颜色
+        List<Line> lines = new ArrayList<Line>();
+        line.setShape(ValueShape.CIRCLE);//折线图上每个数据点的形状  这里是圆形 （有三种 ：ValueShape.SQUARE  ValueShape.CIRCLE  ValueShape.SQUARE）
+        line.setCubic(true);//曲线是否平滑
+        line.setFilled(true);//是否填充曲线的面积
+		line.setHasLabels(true);//曲线的数据坐标是否加上备注
+        line.setPointColor(R.color.colorBackground);
+        //line.setHasLabelsOnlyForSelected(true);//点击数据坐标提示数据（设置了这个line.setHasLabels(true);就无效）
+        line.setHasLines(true);//是否用直线显示。如果为false 则没有曲线只有点显示
+        line.setHasPoints(true);//是否显示圆点 如果为false 则没有原点只有点显示
+        lines.add(line);
+        LineChartData data = new LineChartData();
+        data.setLines(lines);
+        //坐标轴
+        Axis axisX = new Axis(); //X轴
+        axisX.setHasTiltedLabels(false); //坐标轴是否斜着显示
+        axisX.setTextColor(Color.WHITE);  //设置字体颜色
+        axisX.setName("24小时预报");  //表格名称
+        axisX.setTextSize(7);//设置字体大小
+        axisX.setMaxLabelChars(8);  //最多几个X轴坐标
+        axisX.setValues(mAxisValues);  //填充X轴的坐标名称
+        data.setAxisXBottom(axisX); //x 轴在底部
+//	    data.setAxisXTop(axisX);  //x 轴在顶部
+        Axis axisY = new Axis();  //Y轴
+        axisY.setMaxLabelChars(3); //默认是3，只能看最后三个数字
+        axisY.setName("温度");//y轴标注
+        axisY.setTextSize(7);//设置字体大小
+        data.setAxisYLeft(axisY);  //Y轴设置在左边
+//	    data.setAxisYRight(axisY);  //y轴设置在右边
+
+        //设置行为属性，支持缩放、滑动以及平移
+        mLineChartView24H.setInteractive(true);
+        mLineChartView24H.setZoomType(ZoomType.HORIZONTAL_AND_VERTICAL);
+        mLineChartView24H.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL);
+        mLineChartView24H.setLineChartData(data);
+        mLineChartView24H.setVisibility(View.VISIBLE);
+
+    }
+
+    /**
+     * X 轴的显示
+     */
+    private void getAxisLables(){
+        //填充前先清空数据
+        mAxisValues.clear();
+        for (int i = 0; i < hourly_times.length; i++) {
+            mAxisValues.add(new AxisValue(i).setLabel(hourly_times[i]));
+            Log.d(TAG, hourly_times[i]);
+        }
+    }
+
+
+
+    /**
+     * 图表的每个点的显示
+     */
+    private void getAxisPoints(){
+        //填充前先清空数据
+        mPointValues.clear();
+        for (int i = 0; i < hourly_tmp.length; i++) {
+            mPointValues.add(new PointValue(i, hourly_tmp[i]));
+        }
     }
 
     @Override
@@ -221,12 +374,6 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this,SettingsActivity.class);
                 startActivity(intent);
-                break;
-            //点击跳转到下载图片页面
-            case R.id.menu_item_switch_download:
-                Intent intent2 = new Intent();
-                intent2.setClass(MainActivity.this,downloadImgActivity.class);
-                startActivity(intent2);
                 break;
             //点击显示滑动菜单
             case android.R.id.home:
@@ -247,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 更新天气
      */
+
     private void updateForecast(){
         //获取数据的线程
         Thread thread = new Thread(new Runnable() {
@@ -260,12 +408,6 @@ public class MainActivity extends AppCompatActivity {
                         .build();
                 String url = uri.toString();
                 Log.d("切换城市后返回主界面：", getCurrentCityID());
-                /*教室用url
-                String url = "http://192.168.22.161/s6/weather/forecast?location=%E6%BC%B3%E5%B7%9E&key=123456";
-                个人用url
-                https://free-api.heweather.com/s6/weather/forecast?location=cityName&key=c0eabd2cbf7d4920bb45ff74c85dad5d
-                */
-
                 HttpURLConnection httpURLConnection = null;
 
                 InputStream inputStream = null;
@@ -286,7 +428,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG,"开始TRY...");
                     Log.d(TAG,jsonStr);
 
-                    //调用解析json文件的方法,true则为成功取得数据
+                    //调用解析json文件的方法 true则为成功取得数据
+                    //FORMAT_JSON_DATA_LIFE_STYLES_FAILED则为没有取得生活指数数据
                     if(formatJsonData(jsonStr))
                     {
                         //更新前删除原有数据
@@ -296,7 +439,6 @@ public class MainActivity extends AppCompatActivity {
                             //利用LitePal保存数据
                             weather.save();
                         }
-                        //调用解析json文件的方法，获得装有LifeStyle对象的List
                         //更新前删除原有数据
                         LitePal.deleteAll(LifeStyle.class);
                         for(LifeStyle lifeStyle:lifeStyleList){
@@ -304,6 +446,7 @@ public class MainActivity extends AppCompatActivity {
                             lifeStyle.save();
                         }
                         mHandler.sendEmptyMessage(UPDATE_SUCCESS);
+
                     }
                     else
                     {
@@ -348,9 +491,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private boolean formatJsonData(String string){
         Log.d(TAG,"开始Format：");
-
-
         try {
+
             JSONObject jsonObject = new JSONObject(string);
             JSONArray heWeather6 = jsonObject.getJSONArray("HeWeather6");
                 JSONObject heWeather = heWeather6.getJSONObject(0);
@@ -390,25 +532,27 @@ public class MainActivity extends AppCompatActivity {
 
                     //当前天气(now)
                     JSONObject now = heWeather.getJSONObject("now");
-                        String cloud = now.getString("cloud");
+                        cloud = now.getString("cloud");
                         String condCode = now.getString("cond_code");
                         String condTxt = now.getString("cond_txt");
                         String fl = now.getString("fl");
-                        String hum = now.getString("hum");
-                        String pcpn = now.getString("pcpn");
-                        String pres = now.getString("pres");
+                        hum = now.getString("hum");
+                        pcpn = now.getString("pcpn");
+                        pres = now.getString("pres");
                         String tmp = now.getString("tmp");
-                        String vis = now.getString("vis");
+                        vis = now.getString("vis");
                         String windDeg = now.getString("wind_deg");
-                        String windDir = now.getString("wind_dir");
-                        String windSc = now.getString("wind_sc");
-                        String windSpd = now.getString("wind_spd");
+                        windDir = now.getString("wind_dir");
+                        windSc = now.getString("wind_sc");
+                        windSpd = now.getString("wind_spd");
                         //填充数据
                         Log.d(TAG,"weatherNow.setCondCode(condCode)="+condCode);
+
                         weatherNow.setCondCode(condCode);
                         weatherNow.setCondTxt(condTxt);
                         weatherNow.setFl(fl);
                         weatherNow.setTmp(tmp);
+
 
                     //7日天气预报(dailyForecast)
                     JSONArray dailyForecast = heWeather.getJSONArray("daily_forecast");
@@ -436,22 +580,49 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG,weather.getTmpMin()+"->"+weather.getTmpMax());
                     }
                     //生活指数预报
-                    JSONArray lifesSyles = heWeather.getJSONArray("lifestyle");
-                    for(int i = 0;i<lifesSyles.length();i++) {
-                        JSONObject lifeStyle = lifesSyles.getJSONObject(i);
-                        String type = lifeStyle.getString("type");
-                        //通过生活指数类型代码，获得生活指数类型
-                        int typeImg = myUtils.setLifeStyleTypeImg(type);
-                        type = myUtils.getLifeStyleType(type);
-                        String brf = lifeStyle.getString("brf");
-                        String txt = lifeStyle.getString("txt");
-                        //实例化LifeStyle对象，保存解析过后的数据
-                        LifeStyle lifeStyleObject = new LifeStyle(cid,typeImg,type,brf,txt);
-                        Log.d(TAG,String.valueOf(myUtils.setLifeStyleTypeImg(type)));
+                    //因部分地区无生活指数参数，所以使用try catch
+                    try
+                    {
+                        JSONArray lifesSyles = heWeather.getJSONArray("lifestyle");
+                        for(int i = 0;i<lifesSyles.length();i++) {
+                            JSONObject lifeStyle = lifesSyles.getJSONObject(i);
+                            String type = lifeStyle.getString("type");
+                            //通过生活指数类型代码，获得生活指数类型
+                            int typeImg = myUtils.setLifeStyleTypeImg(type);
+                            type = myUtils.getLifeStyleType(type);
+                            String brf = lifeStyle.getString("brf");
+                            String txt = lifeStyle.getString("txt");
+                            //实例化LifeStyle对象，保存解析过后的数据
+                            LifeStyle lifeStyleObject = new LifeStyle(cid,typeImg,type,brf,txt);
+                            Log.d(TAG,String.valueOf(myUtils.setLifeStyleTypeImg(type)));
+                            lifeStyleList.add(lifeStyleObject);
+                        }
 
-                        lifeStyleList.add(lifeStyleObject);
-
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
+
+                    //逐小时预报
+                    JSONArray hourlys = heWeather.getJSONArray("hourly");
+                    for(int i = 0; i < hourlys.length(); i++){
+                        JSONObject hourly = hourlys.getJSONObject(i);
+                        String hourlyTmp = hourly.getString("tmp");
+                        String time = hourly.getString("time");
+                        String cond_code = hourly.getString("cond_code");
+                        //只显示时间，不显示日期
+                        time = time.split(" ")[1];
+                        Log.d(TAG,time);
+                        hourly_times[i] = time;
+                        String hourlyTmpChange = myUtils.temp_unit(hourlyTmp);
+                        hourlyTmpChange = hourlyTmpChange.substring(0, hourlyTmpChange.length()-1);
+                        hourly_tmp[i] = Float.parseFloat(hourlyTmpChange);
+                        Log.d(TAG,hourlyTmpChange);
+                    }
+
+            getAxisLables();//获取x轴的标注
+            getAxisPoints();//获取坐标点
+            initLineChart();//初始化
+
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -462,8 +633,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-
-
-
+    private void initFragments(){
+        WeatherFragment weatherFragment = WeatherFragment.newInstance(getCurrentCityID());
+        fragments = new ArrayList<>();
+        fragments.add(weatherFragment);
+        mViewPagerWeather.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(),fragments));
+    }
 }

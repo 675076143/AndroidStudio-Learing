@@ -19,6 +19,7 @@ import java.util.List;
  */
 public class ForecastAdapter extends ArrayAdapter<Weather> {
 
+    MyUtils myUtils = new MyUtils();
     private static final String TAG = "ForecastAdapter";
     private int resourceID;
     public ForecastAdapter( Context context, int resource, List objects) {
@@ -35,28 +36,23 @@ public class ForecastAdapter extends ArrayAdapter<Weather> {
         TextView forecastTextView = view.findViewById(R.id.text_view_forecast);
         TextView tempTextView = view.findViewById(R.id.text_view_temp);
         //设置控件Text的值
-        dateTextView.setText(weather.getDate());
+        switch (position){
+            case 0:
+                dateTextView.setText("今天");
+                break;
+            case 1:
+                dateTextView.setText("明天");
+                break;
+            case 2:
+                dateTextView.setText("后天");
+                break;
+            default:
+                dateTextView.setText(myUtils.dateToWeek(weather.getDate()));
+                break;
+        }
+
         forecastTextView.setText(weather.getCondTxtD()+"转"+weather.getCondTxtN());
-
-
-        //通过配置文件判断使用华氏度还是摄氏度
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String temp_unit = preferences.getString("temp_unit_list", "摄氏度");
-
-        Log.d(TAG,temp_unit);
-        if (temp_unit.equals("华氏度")){
-            //数字格式化，保留两位小数
-            DecimalFormat decimalFormat = new DecimalFormat("#.0");
-            Double TmpMin = 32 + (Double.parseDouble(weather.getTmpMin())*1.8);
-            Double TmpMax = 32 + (Double.parseDouble(weather.getTmpMax())*1.8);
-            tempTextView.setText(
-                    decimalFormat.format(TmpMin) +"℉ -> "
-                    +decimalFormat.format(TmpMax)+"℉");
-        }
-        else {
-            tempTextView.setText(weather.getTmpMin()+"℃ -> "+weather.getTmpMax()+"℃");
-        }
-        
+        tempTextView.setText(myUtils.temp_unit(weather.getTmpMin()) + "->" + myUtils.temp_unit(weather.getTmpMax()));
         return view;
     }
 }

@@ -1,6 +1,7 @@
 package cn.edu.fjzzit.weatherforecast;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -34,9 +35,10 @@ public class LifeStyleCardViewAdapter extends RecyclerView.Adapter<LifeStyleCard
             typeImg = (ImageView) view.findViewById(R.id.image_view_lifestyle_type_img);
             typeText = (TextView) view.findViewById(R.id.text_view_lifestyle_type);
             brfText = (TextView) view.findViewById(R.id.text_view_lifestyle_brf);
-            txtText = (TextView) view.findViewById(R.id.text_view_lifestyle_txt);
+            //txtText = (TextView) view.findViewById(R.id.text_view_lifestyle_txt);
 
         }
+
     }
 
     public LifeStyleCardViewAdapter(List<LifeStyle> lifeStyleList){
@@ -49,7 +51,21 @@ public class LifeStyleCardViewAdapter extends RecyclerView.Adapter<LifeStyleCard
             mType = viewGroup.getContext();
         }
         View view = LayoutInflater.from(mType).inflate(R.layout.layout_cardview_lifestyle,viewGroup,false);
-        return new ViewHolder(view);
+        final ViewHolder holder = new ViewHolder(view);
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = holder.getAdapterPosition();
+                LifeStyle lifeStyle = mLifeStylesList.get(position);
+                Intent intent = new Intent(mType, LifeStyleDetailsAcitvity.class);
+                intent.putExtra(LifeStyleDetailsAcitvity.LIFE_STYLE_TYPE, lifeStyle.getType()+"指数");
+                intent.putExtra(LifeStyleDetailsAcitvity.LIFE_STYLE_IMAGE, lifeStyle.getTypeImg());
+                intent.putExtra(LifeStyleDetailsAcitvity.LIFE_STYLE_TXT, lifeStyle.getTxt());
+                intent.putExtra(LifeStyleDetailsAcitvity.LIFE_STYLE_BRF, lifeStyle.getBrf());
+                mType.startActivity(intent);
+            }
+        });
+        return holder;
     }
 
     @Override
@@ -57,7 +73,7 @@ public class LifeStyleCardViewAdapter extends RecyclerView.Adapter<LifeStyleCard
         LifeStyle lifeStyle = mLifeStylesList.get(position);
         viewHolder.typeText.setText(lifeStyle.getType());
         viewHolder.brfText.setText(lifeStyle.getBrf());
-        viewHolder.txtText.setText(lifeStyle.getTxt());
+        //viewHolder.txtText.setText(lifeStyle.getTxt());
         // 使用Glide而不使用传统设置图片的方式（图片过大会造成内存溢出，Glide能帮助压缩）
         Glide.with(mType).load(lifeStyle.getTypeImg()).into(viewHolder.typeImg);
     }

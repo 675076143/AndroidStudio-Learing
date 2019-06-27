@@ -1,16 +1,24 @@
 package cn.edu.fjzzit.weatherforecast;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+
 /**
  * 工具类
  */
 public class MyUtils {
+    private static final String TAG = "MyUtils";
+    Context context = MyApplication.getContext();
     private String localTime;
 
     public String getLocalTime() {
@@ -19,6 +27,15 @@ public class MyUtils {
 
     public void setLocalTime(String localTime) {
         this.localTime = localTime;
+    }
+
+    /**
+     * 获取当前的城市ID
+     */
+    String getCurrentCityID(){
+        //从配置文件中取出城市ID
+        SharedPreferences preferences = context.getSharedPreferences("userSettings", Context.MODE_PRIVATE);
+        return preferences.getString("cityID","CN101230601");
     }
 
     /**
@@ -31,21 +48,21 @@ public class MyUtils {
         switch (type)
         {
             case "comf":
-                return "舒适度指数";
+                return "舒适度";
             case "cw":
-                return "洗车指数";
+                return "洗车";
             case "drsg":
-                return "穿衣指数";
+                return "穿衣";
             case "flu":
-                return "感冒指数";
+                return "感冒";
             case "sport":
-                return "运动指数";
+                return "运动";
             case "trav":
-                return "旅游指数";
+                return "旅游";
             case "uv":
-                return "紫外线指数";
+                return "紫外线";
             case "air":
-                return "空气污染扩散指数";
+                return "空气";
             default:
                 return "其他";
         }
@@ -88,6 +105,7 @@ public class MyUtils {
      */
     public int setImageByCondCode(String CondCode)
     {
+
         boolean isDay = isDay(localTime);
         //如果时间是夜间，则在实况天气状况代码(cond_code)后加一个n
         if (!isDay)
@@ -95,8 +113,17 @@ public class MyUtils {
             CondCode = CondCode+"n";
 
         }
+        //上下文环境
+        /*
+        Context context = MyApplication.getContext();
+        int resId = context.getResources().getIdentifier("cond_icon_heweather_" + CondCode, "drawable", context.getPackageName());
+//        int resId = getResources().getIdentifier("cond_icon_heweather_" + CondCode, "drawable", getPackageName());
+        Log.d(TAG,resId+"");
+        return resId;
+        */
         switch (CondCode)
         {
+
             //白天
             case "100":
                 return R.drawable.cond_icon_heweather_100;
@@ -409,5 +436,45 @@ public class MyUtils {
             return false;
         }
 
+    }
+
+    /**
+     * 日期转星期
+     * @param datetime 日期
+     * @return 星期
+     */
+    public String dateToWeek(String datetime) {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+        String[] weekDays = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
+        Calendar cal = Calendar.getInstance(); // 获得一个日历
+        Date datet = null;
+        try {
+            datet = f.parse(datetime);
+            cal.setTime(datet);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        int w = cal.get(Calendar.DAY_OF_WEEK) - 1; // 指示一个星期中的某天。
+        if (w < 0)
+            w = 0;
+        return weekDays[w];
+    }
+
+
+    public String temp_unit(String temp){
+        //通过配置文件判断使用华氏度还是摄氏度
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String temp_unit = preferences.getString("temp_unit_list", "摄氏度");
+
+        Log.d(TAG,temp_unit);
+        if (temp_unit.equals("华氏度")){
+            //数字格式化，保留两位小数
+            DecimalFormat decimalFormat = new DecimalFormat("#.0");
+            Double tempFahrenheit = 32 + (Double.parseDouble(temp)*1.8);
+            return decimalFormat.format(tempFahrenheit)+"℉";
+        }
+        else {
+            return temp+ "℃";
+        }
     }
 }

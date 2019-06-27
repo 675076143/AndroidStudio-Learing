@@ -13,8 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".WickedModeActivity"></activity>
-        <activity android:name=".FindCityActivity"></activity>
+        <activity android:name=".LifeStyleDetailsAcitvity"></activity>
+        <activity android:name=".WickedModeActivity" />
+        <activity android:name=".FindCityActivity" />
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
